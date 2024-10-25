@@ -1,0 +1,53 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Pulls the latest code from GitHub
+                checkout scm
+            }
+        }
+
+        stage('Dependency Installation') {
+            steps {
+                script {
+                    // Check if npm is available and install dependencies
+                    if (fileExists('package.json')) {
+                        echo 'Installing frontend dependencies...'
+                        sh 'npm install'
+                    } else {
+                        error "package.json not found. Please check your project structure."
+                    }
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    // Builds the React application
+                    echo 'Building the application...'
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    // Runs tests for the React application
+                    echo 'Running tests...'
+                    sh 'npm test -- --watchAll=false'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Clean up workspace after build
+            cleanWs()
+        }
+    }
+}
